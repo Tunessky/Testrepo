@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Book Brewery — distill any ebook into chapter-by-chapter learning summaries</title>
+    <title>Book Brewery — steep any ebook into a chapter-by-chapter learning summary</title>
     <link rel="stylesheet" href="/style.css" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.9em' font-size='56'%3E%F0%9F%8D%B5%3C/text%3E%3C/svg%3E" />
   </head>
@@ -13,7 +13,7 @@
         <span class="brand-mark" aria-hidden="true">🍵</span>
         <div>
           <h1>Book Brewery</h1>
-          <p>Steep any ebook into clear, chapter-by-chapter learning summaries.</p>
+          <p>Steep any ebook into a chapter-by-chapter learning summary.</p>
         </div>
       </div>
       <div class="status" id="status">Idle</div>
@@ -22,25 +22,38 @@
     <main id="stage">
       <!-- Landing / upload -->
       <section id="landing" class="panel">
+        <div class="hero">
+          <span class="eyebrow">A tea for reading</span>
+          <h2>Turn any book into a <em>lesson you can steer</em>.</h2>
+          <p>
+            Drop in an ebook. Book Brewery breaks it into chapters, walks you
+            through each one — theme, concepts, key terms, frameworks,
+            diagrams — and pauses to let you dig deeper or move on.
+          </p>
+        </div>
+
         <div class="dropzone" id="dropzone">
           <div class="dz-inner">
             <div class="dz-icon">📚</div>
-            <h2>Drop your ebook here</h2>
-            <p>PDF, EPUB, DOCX, TXT, or Markdown — up to 50&nbsp;MB.</p>
+            <h3>Drop your ebook here</h3>
+            <p>or click to browse — up to 50&nbsp;MB</p>
             <label class="btn primary">
-              Choose a file
+              <span class="btn-icon">↑</span> Choose a file
               <input type="file" id="fileInput" accept=".pdf,.epub,.docx,.txt,.md,.markdown" hidden />
             </label>
-            <p class="fineprint">Nothing is stored — the file lives in memory for this session only.</p>
+            <div class="format-chips" aria-label="Supported formats">
+              <span>PDF</span><span>EPUB</span><span>DOCX</span><span>TXT</span><span>MD</span>
+            </div>
+            <p class="fineprint">Nothing is stored — files live in memory for this session only</p>
           </div>
         </div>
 
         <details class="how">
-          <summary>How Book Brewery works</summary>
+          <summary>How Book Brewery brews</summary>
           <ol>
-            <li>You upload the ebook. We split it into chapters using the book's own structure (or heading heuristics).</li>
-            <li>For each chapter, an educational content analyst persona produces a structured summary: theme, core concepts, key terminology, frameworks, and visuals as inline HTML.</li>
-            <li>After every chapter you're asked whether to expand a section, ask a follow-up, or brew the next chapter.</li>
+            <li><strong>Split.</strong> The book is broken into chapters using its own structure (EPUB TOC) or heading heuristics.</li>
+            <li><strong>Steep.</strong> Each chapter is analyzed by an educational-content persona — theme, core concepts in plain language, key terminology, frameworks, and inline diagrams for anything visual.</li>
+            <li><strong>Serve.</strong> After every chapter you can ask a follow-up, expand a section, or move on to the next.</li>
           </ol>
         </details>
       </section>
@@ -59,20 +72,25 @@
           <div class="thread" id="thread"></div>
 
           <form class="composer" id="composer">
-            <textarea
-              id="composerInput"
-              rows="2"
-              placeholder="Ask a follow-up, or say ‘next chapter’…"
-              aria-label="Message"
-            ></textarea>
+            <div class="composer-shell">
+              <textarea
+                id="composerInput"
+                rows="2"
+                placeholder="Ask a follow-up, request an expansion, or type ‘next chapter’…"
+                aria-label="Message"
+              ></textarea>
+            </div>
             <div class="composer-actions">
-              <button type="button" class="btn ghost" id="expandBtn" title="Ask to expand the last summary">
-                Expand
-              </button>
-              <button type="button" class="btn ghost" id="nextBtn" title="Brew the next chapter">
-                Next chapter →
-              </button>
-              <button type="submit" class="btn primary" id="sendBtn">Send</button>
+              <span class="composer-hint"><kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line</span>
+              <div class="composer-buttons">
+                <button type="button" class="btn ghost" id="expandBtn" title="Ask to expand the last summary">
+                  Expand
+                </button>
+                <button type="button" class="btn ghost" id="nextBtn" title="Brew the next chapter">
+                  Next chapter →
+                </button>
+                <button type="submit" class="btn primary" id="sendBtn">Send</button>
+              </div>
             </div>
           </form>
         </section>

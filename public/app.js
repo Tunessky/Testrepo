@@ -91,9 +91,9 @@ function renderToc() {
   state.chapters.forEach((c) => {
     const btn = document.createElement("button");
     btn.dataset.index = c.index;
-    btn.innerHTML = `<span class="num">${String(c.index + 1).padStart(2, "0")}</span>${escapeHtml(
+    btn.innerHTML = `<span class="num">${String(c.index + 1).padStart(2, "0")}</span><span class="txt">${escapeHtml(
       c.title,
-    )}`;
+    )}</span>`;
     btn.addEventListener("click", () => startChapter(c.index));
     els.toc.appendChild(btn);
   });
