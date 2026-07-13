@@ -175,23 +175,85 @@ function addUserMessage(text) {
   scrollThread();
 }
 
-function addAssistantMessage() {
+function addAssistantMessage(opts = {}) {
+  const withFigures = opts.layout === "summary";
   const div = document.createElement("div");
-  div.className = "msg assistant";
-  div.innerHTML = `
-    <div class="role">
-      <span>Book Brewery</span>
-      <button type="button" class="copy-btn" title="Copy summary">Copy</button>
-    </div>
-    <div class="content"></div>
-  `;
+  div.className = "msg assistant" + (withFigures ? " with-figures" : "");
+  if (withFigures) {
+    div.innerHTML = `
+      <div class="role">
+        <span>Book Brewery</span>
+        <button type="button" class="copy-btn" title="Copy summary">Copy</button>
+      </div>
+      <div class="summary-cols">
+        <div class="content"></div>
+        <aside class="figures" aria-label="Figures"></aside>
+      </div>
+    `;
+  } else {
+    div.innerHTML = `
+      <div class="role">
+        <span>Book Brewery</span>
+        <button type="button" class="copy-btn" title="Copy summary">Copy</button>
+      </div>
+      <div class="content"></div>
+    `;
+  }
   els.thread.appendChild(div);
-  // Copy button — copies the raw text of this message when clicked.
   const btn = div.querySelector(".copy-btn");
   btn.addEventListener("click", () => copyMessage(div, btn));
   scrollThread();
-  return { mount: div.querySelector(".content"), root: div };
+  return {
+    mount: div.querySelector(".content"),
+    figuresMount: div.querySelector(".figures"),
+    root: div,
+  };
 }
+
+// Move each rendered diagram out of the text column and into the figures
+// aside, replacing it with a linked [Fig. N] badge at its original position.
+// Idempotent — safe to call on every stream delta.
+function extractFigures(mount, figuresMount) {
+  if (!figuresMount) return;
+  figuresMount.innerHTML = "";
+  const diagrams = [...mount.querySelectorAll(".diagram")];
+  diagrams.forEach((d, i) => {
+    const n = i + 1;
+    const ref = document.createElement("a");
+    ref.className = "figref";
+    ref.textContent = `Fig. ${n}`;
+    ref.href = `#fig-${n}`;
+    ref.setAttribute("aria-label", `See Figure ${n}`);
+    d.parentNode.replaceChild(ref, d);
+
+    const fig = document.createElement("figure");
+    fig.className = "fig-card";
+    fig.id = `fig-${n}`;
+    const label = document.createElement("div");
+    label.className = "fig-label";
+    label.textContent = `Fig. ${n}`;
+    fig.appendChild(label);
+    fig.appendChild(d);
+    figuresMount.appendChild(fig);
+  });
+}
+
+// Bind once — clicking any [Fig. N] badge scrolls to its figure and pulses.
+document.addEventListener("click", (e) => {
+  const ref = e.target.closest(".figref");
+  if (!ref) return;
+  const href = ref.getAttribute("href");
+  if (!href || !href.startsWith("#")) return;
+  const fig = document.querySelector(href);
+  if (!fig) return;
+  e.preventDefault();
+  fig.scrollIntoView({ behavior: "smooth", block: "center" });
+  fig.classList.remove("pulse");
+  // eslint-disable-next-line no-void
+  void fig.offsetWidth;
+  fig.classList.add("pulse");
+  setTimeout(() => fig.classList.remove("pulse"), 1200);
+});
 
 async function copyMessage(root, btn) {
   const raw = root.dataset.raw || root.querySelector(".content")?.innerText || "";
@@ -226,11 +288,17 @@ function addChapterPlate(index) {
 function scrollThread() { els.thread.scrollTop = els.thread.scrollHeight; }
 
 // ------------------------- Streaming ---------------------
-async function streamInto(mount, root, url, body) {
+async function streamInto(mount, root, url, body, opts = {}) {
   state.streaming = true;
   setSendingUi(true);
   let raw = "";
   const cursor = '<span class="cursor" aria-hidden="true"></span>';
+  const figuresMount = opts.figuresMount || null;
+
+  const renderNow = (withCursor) => {
+    mount.innerHTML = renderMarkdown(raw) + (withCursor ? cursor : "");
+    extractFigures(mount, figuresMount);
+  };
 
   try {
     const resp = await fetch(url, {
@@ -259,7 +327,7 @@ async function streamInto(mount, root, url, body) {
         const { event, data } = parseSse(chunk);
         if (event === "delta" && data?.text) {
           raw += data.text;
-          mount.innerHTML = renderMarkdown(raw) + cursor;
+          renderNow(true);
           scrollThread();
         } else if (event === "error") {
           throw new Error(data?.message || "Stream error");
@@ -267,7 +335,7 @@ async function streamInto(mount, root, url, body) {
       }
     }
 
-    mount.innerHTML = renderMarkdown(raw);
+    renderNow(false);
     if (root) root.dataset.raw = raw;
     setStatus(`Ready · ${state.chapters.filter((c) => c.done).length + 1} / ${state.chapters.length}`);
     return raw;
@@ -275,6 +343,7 @@ async function streamInto(mount, root, url, body) {
     mount.innerHTML =
       renderMarkdown(raw) +
       `\n\n<p style="color: var(--danger)"><strong>Error:</strong> ${escapeHtml(err.message)}</p>`;
+    extractFigures(mount, figuresMount);
     setStatus(err.message, "error");
     return raw;
   } finally {
@@ -316,17 +385,19 @@ async function startChapter(index) {
   updateTocSelection();
   addChapterPlate(index);
 
-  const { mount, root } = addAssistantMessage();
+  const { mount, root, figuresMount } = addAssistantMessage({ layout: "summary" });
   const priorChapters = state.chapters
     .slice(0, index)
     .filter((c) => c.done)
     .map((c) => ({ title: c.title, gist: firstSentence(c.summary) }));
 
-  const summary = await streamInto(mount, root, "/api/summarize", {
-    bookId: state.bookId,
-    chapterIndex: index,
-    priorChapters,
-  });
+  const summary = await streamInto(
+    mount,
+    root,
+    "/api/summarize",
+    { bookId: state.bookId, chapterIndex: index, priorChapters },
+    { figuresMount },
+  );
 
   chapter.summary = summary;
   chapter.done = true;
@@ -339,13 +410,19 @@ async function askFollowUp(question) {
   if (state.currentIndex < 0) return;
   const chapter = state.chapters[state.currentIndex];
   addUserMessage(question);
-  const { mount, root } = addAssistantMessage();
-  const summary = await streamInto(mount, root, "/api/followup", {
-    bookId: state.bookId,
-    chapterIndex: state.currentIndex,
-    previousSummary: chapter.summary,
-    question,
-  });
+  const { mount, root, figuresMount } = addAssistantMessage({ layout: "summary" });
+  const summary = await streamInto(
+    mount,
+    root,
+    "/api/followup",
+    {
+      bookId: state.bookId,
+      chapterIndex: state.currentIndex,
+      previousSummary: chapter.summary,
+      question,
+    },
+    { figuresMount },
+  );
   chapter.summary = `${chapter.summary}\n\n---\n\n${summary}`;
 }
 
@@ -372,7 +449,7 @@ els.expandBtn.addEventListener("click", () => {
 els.nextBtn.addEventListener("click", () => {
   const next = state.currentIndex + 1;
   if (next >= state.chapters.length) {
-    const { mount } = addAssistantMessage();
+    const { mount } = addAssistantMessage({ layout: "single" });
     mount.innerHTML = "<p>That was the last chapter. 🎉 Upload another book from the left when you're ready.</p>";
     return;
   }

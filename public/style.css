@@ -730,6 +730,98 @@ main#stage { flex: 1; display: flex; min-height: 0; }
   margin: 20px 0;
 }
 
+/* ---------- Two-column summary layout ---------- */
+.msg.assistant.with-figures {
+  max-width: 1120px;
+}
+.summary-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 32px;
+  align-items: start;
+}
+.summary-cols > .content { min-width: 0; }
+.figures {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.figures:empty { display: none; }
+.msg.assistant.with-figures:has(.figures:empty) .summary-cols {
+  grid-template-columns: 1fr;
+}
+
+.fig-card {
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 12px;
+  overflow: hidden;
+  scroll-margin-top: 100px;
+  transition: box-shadow 200ms ease;
+}
+.fig-card .fig-label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.fig-card .diagram {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+.fig-card .diagram::before { display: none; }
+
+.fig-card.pulse {
+  box-shadow: 0 0 0 4px var(--accent-glow), var(--shadow);
+  animation: fig-pulse 1.2s ease-out;
+}
+@keyframes fig-pulse {
+  0%   { box-shadow: 0 0 0 4px var(--accent-glow), var(--shadow); }
+  100% { box-shadow: 0 0 0 0 transparent, var(--shadow-sm); }
+}
+
+/* Inline [Fig. N] reference badge */
+.figref {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 1px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  text-decoration: none;
+  vertical-align: 2px;
+  transition: background 120ms ease, color 120ms ease;
+  margin: 0 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.figref:hover { background: var(--accent); color: var(--surface); }
+
+/* When collapsed to a single column on narrow screens, the figures row
+   flows naturally after the text. */
+@media (max-width: 900px) {
+  .summary-cols { grid-template-columns: 1fr; gap: 20px; }
+  .figures { position: static; max-height: none; overflow: visible; flex-direction: column; }
+  .msg.assistant.with-figures { max-width: 100%; }
+}
+
 /* Diagram card — always light-themed for contrast */
 .msg .diagram {
   background: #fdfbf4;
@@ -859,6 +951,11 @@ main#stage { flex: 1; display: flex; min-height: 0; }
   .msg::before { display: none !important; }
   .chapter-plate { page-break-before: always; margin-top: 40px; }
   .msg .diagram { break-inside: avoid; }
+  /* Reflow the two-column summary so figures print after the prose */
+  .summary-cols { display: block !important; }
+  .figures { position: static !important; max-height: none !important; overflow: visible !important; margin-top: 12px; }
+  .fig-card { border: 1px solid #ccc !important; break-inside: avoid; margin-top: 12px; }
+  .figref { border: none !important; padding: 0 !important; color: black !important; text-decoration: underline; }
 }
 
 /* ---------- Small screens ---------- */
