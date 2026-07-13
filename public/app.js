@@ -593,6 +593,10 @@ function inline(t) {
     } else {
       setStatus(`Idle · ${data.model}`);
     }
+    if (data.authEnabled) {
+      const form = document.getElementById("logoutForm");
+      if (form) { form.style.display = ""; form.classList.remove("hidden"); }
+    }
   } catch (_) {
     setStatus("Server unreachable", "error");
   }

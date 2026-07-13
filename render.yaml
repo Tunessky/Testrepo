@@ -14,3 +14,5 @@ services:
         sync: false
       - key: ANTHROPIC_MODEL
         value: claude-opus-4-7
+      - key: AUTH_PASSWORD
+        sync: false

@@ -7,9 +7,22 @@ const Anthropic = require("@anthropic-ai/sdk");
 
 const { extractChapters } = require("./lib/parse");
 const { SYSTEM_PROMPT, buildChapterUserPrompt, buildFollowUpPrompt } = require("./lib/prompts");
+const {
+  isAuthEnabled,
+  isAuthenticated,
+  requireAuth,
+  checkPassword,
+  issueCookie,
+  clearCookie,
+  loginPageHtml,
+} = require("./lib/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Trust the Render / proxied X-Forwarded-Proto so the session cookie can be
+// marked Secure when served over HTTPS.
+app.set("trust proxy", 1);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -17,6 +30,33 @@ const upload = multer({
 });
 
 app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: false, limit: "16kb" }));
+
+// Login endpoints must be reachable *before* the auth gate.
+app.get("/login", (req, res) => {
+  if (isAuthenticated(req)) return res.redirect("/");
+  res.type("html").send(loginPageHtml({ redirect: "/" }));
+});
+app.post("/login", (req, res) => {
+  const password = req.body?.password || "";
+  const redirect =
+    typeof req.body?.redirect === "string" && req.body.redirect.startsWith("/") && !req.body.redirect.startsWith("//")
+      ? req.body.redirect
+      : "/";
+  if (checkPassword(password)) {
+    issueCookie(res, req);
+    res.redirect(redirect);
+  } else {
+    res.status(401).type("html").send(loginPageHtml({ error: "Wrong password.", redirect }));
+  }
+});
+app.post("/logout", (req, res) => {
+  clearCookie(res);
+  res.redirect("/login");
+});
+
+// Gate everything below.
+app.use(requireAuth);
 app.use(express.static(path.join(__dirname, "public")));
 
 // In-memory session store: bookId -> { title, chapters: [{title, text}] }
@@ -37,6 +77,7 @@ app.get("/api/health", (_req, res) => {
     ok: true,
     model: process.env.ANTHROPIC_MODEL || "claude-opus-4-7",
     hasKey: Boolean(process.env.ANTHROPIC_API_KEY),
+    authEnabled: isAuthEnabled(),
   });
 });
 
@@ -169,5 +210,10 @@ app.listen(PORT, () => {
   console.log(`Book Brewery running on http://localhost:${PORT}`);
   if (!process.env.ANTHROPIC_API_KEY) {
     console.warn("⚠  ANTHROPIC_API_KEY not set — uploads will work, summaries will not.");
+  }
+  if (!isAuthEnabled()) {
+    console.warn("⚠  AUTH_PASSWORD not set — the app is open to anyone who reaches this URL.");
+  } else {
+    console.log("🔒 Password protection is on.");
   }
 });
