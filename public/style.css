@@ -597,17 +597,21 @@ main#stage {
   border-radius: 0 8px 8px 0;
 }
 
+/* Diagrams render as their own "printed page" so assistant-generated
+   HTML (usually authored against a light theme) stays legible in both
+   light and dark modes. */
 .msg .diagram {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  background: #fdfbf4;
+  border: 1px solid #d9cea8;
   border-radius: 12px;
-  padding: 18px;
-  margin: 14px 0;
+  padding: 20px;
+  margin: 16px 0;
   overflow-x: auto;
   font-family: var(--font-sans);
   font-size: 14px;
-  color: var(--ink);
+  color: #241d10;
   position: relative;
+  color-scheme: light;
 }
 .msg .diagram::before {
   content: "Diagram";
@@ -618,13 +622,38 @@ main#stage {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 700;
-  color: var(--accent);
-  background: var(--surface);
+  color: #b95e1a;
+  background: #fdfbf4;
   padding: 2px 8px;
-  border: 1px solid var(--line);
+  border: 1px solid #d9cea8;
   border-radius: 999px;
 }
+.msg .diagram * { color: inherit; }
 .msg .diagram svg { max-width: 100%; height: auto; display: block; }
+.msg .diagram table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.msg .diagram table th,
+.msg .diagram table td {
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid #d9cea8;
+  color: #241d10;
+}
+.msg .diagram table th {
+  background: #f2ead0;
+  color: #241d10;
+  font-weight: 700;
+}
+.msg .diagram table tr:nth-child(even) td { background: #f7f0dd; }
+.msg .diagram a { color: #b95e1a; }
+.msg .diagram code {
+  background: #f2ead0;
+  color: #8b3f0d;
+  border-color: #d9cea8;
+}
 
 .msg .cursor {
   display: inline-block;
