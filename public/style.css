@@ -17,6 +17,7 @@
   --line-strong: #c9b98f;
   --danger: #9c3418;
   --code-bg: #f2ead0;
+  --marginalia: #f4ecd4;
   --radius: 16px;
   --radius-lg: 22px;
   --shadow-sm: 0 1px 2px rgba(60, 40, 15, 0.06);
@@ -47,6 +48,7 @@
     --line-strong: #56492f;
     --danger: #ec8567;
     --code-bg: #2a2418;
+    --marginalia: #2a2318;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow: 0 6px 24px -8px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.7), 0 6px 16px -6px rgba(0, 0, 0, 0.45);
@@ -88,14 +90,15 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
+  gap: 16px;
 }
-
-.brand {
+.topbar-right {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .brand-mark {
   font-size: 32px;
   line-height: 1;
@@ -106,7 +109,6 @@ body {
   0%, 100% { transform: translateY(0) rotate(-3deg); }
   50%      { transform: translateY(-3px) rotate(3deg); }
 }
-
 .brand h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -118,11 +120,33 @@ body {
   background-clip: text;
   color: transparent;
 }
+.brand p { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; }
 
-.brand p {
-  margin: 2px 0 0;
+/* Progress in top bar */
+.progress-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
   color: var(--ink-2);
-  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.progress-inline.hidden { display: none; }
+.progress-label { white-space: nowrap; }
+.progress-track {
+  width: 160px;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transition: width 400ms cubic-bezier(.2,.7,.3,1);
 }
 
 .status {
@@ -159,29 +183,20 @@ body {
 }
 
 /* ---------- Main stage ---------- */
-main#stage {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-}
+main#stage { flex: 1; display: flex; min-height: 0; }
 .panel { flex: 1; display: flex; min-height: 0; }
 .panel.hidden { display: none; }
 
 /* ---------- Landing / hero ---------- */
 #landing {
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex-direction: column;
   padding: 40px 24px 60px;
-  gap: 28px;
+  gap: 22px;
   overflow-y: auto;
 }
-
-.hero {
-  text-align: center;
-  max-width: 640px;
-  padding-top: 28px;
-}
+.hero { text-align: center; max-width: 640px; padding-top: 20px; }
 .hero .eyebrow {
   display: inline-block;
   font-size: 12px;
@@ -241,29 +256,16 @@ main#stage {
   pointer-events: none;
   border-radius: var(--radius-lg);
 }
-.dropzone:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--accent);
-}
+.dropzone:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
 .dropzone:hover::before { opacity: 1; animation: shimmer 2.4s ease-in-out infinite; }
-.dropzone.drag {
-  border-color: var(--accent);
-  background: var(--surface-2);
-  transform: scale(1.01);
-  box-shadow: var(--shadow-lg);
-}
+.dropzone.drag { border-color: var(--accent); background: var(--surface-2); transform: scale(1.01); box-shadow: var(--shadow-lg); }
 @keyframes shimmer {
   0%   { background-position: 200% 0%; }
   100% { background-position: -200% 0%; }
 }
 
 .dz-inner { position: relative; z-index: 1; }
-.dz-icon {
-  font-size: 56px;
-  margin-bottom: 4px;
-  filter: drop-shadow(0 6px 14px var(--accent-glow));
-}
+.dz-icon { font-size: 56px; margin-bottom: 4px; filter: drop-shadow(0 6px 14px var(--accent-glow)); }
 .dropzone h3 {
   font-family: var(--font-display);
   margin: 10px 0 6px;
@@ -271,11 +273,7 @@ main#stage {
   color: var(--ink);
   letter-spacing: -0.3px;
 }
-.dropzone > .dz-inner > p {
-  color: var(--ink-2);
-  margin: 6px 0 20px;
-  font-size: 15px;
-}
+.dropzone > .dz-inner > p { color: var(--ink-2); margin: 6px 0 20px; font-size: 15px; }
 .dropzone .fineprint {
   color: var(--ink-3);
   font-size: 12px;
@@ -293,13 +291,7 @@ main#stage {
   background: linear-gradient(90deg, transparent, var(--line), transparent);
   max-width: 120px;
 }
-.format-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 16px;
-}
+.format-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 16px; }
 .format-chips span {
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -311,6 +303,30 @@ main#stage {
   border: 1px solid var(--line);
   text-transform: uppercase;
 }
+
+.sample-cta {
+  width: min(680px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  box-shadow: var(--shadow-sm);
+}
+.sample-cta:hover { transform: translateY(-1px); border-color: var(--accent); box-shadow: var(--shadow); }
+.sample-icon { font-size: 26px; }
+.sample-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sample-body strong { color: var(--ink); font-size: 15px; }
+.sample-body span { color: var(--ink-2); font-size: 13px; }
+.sample-arrow { color: var(--accent); font-size: 20px; transition: transform 160ms ease; }
+.sample-cta:hover .sample-arrow { transform: translateX(3px); }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -329,7 +345,6 @@ main#stage {
   letter-spacing: 0.1px;
 }
 .btn:active { transform: translateY(1px); }
-
 .btn.primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff8ea;
@@ -342,15 +357,9 @@ main#stage {
   transform: translateY(-1px);
 }
 .btn.primary[disabled] { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
-
-.btn.ghost {
-  background: var(--surface);
-  color: var(--ink-2);
-  border-color: var(--line);
-}
+.btn.ghost { background: var(--surface); color: var(--ink-2); border-color: var(--line); }
 .btn.ghost:hover { color: var(--ink); border-color: var(--line-strong); background: var(--surface-2); }
 .btn.ghost[disabled] { opacity: 0.5; cursor: not-allowed; }
-
 .btn-icon { font-size: 16px; line-height: 1; }
 
 .linkbtn {
@@ -365,7 +374,6 @@ main#stage {
 }
 .linkbtn:hover { color: var(--accent-2); text-decoration: underline; }
 
-/* ---------- How it works ---------- */
 .how {
   width: min(680px, 100%);
   background: var(--surface);
@@ -385,12 +393,7 @@ main#stage {
   gap: 10px;
 }
 .how summary::-webkit-details-marker { display: none; }
-.how summary::before {
-  content: "❯";
-  color: var(--accent);
-  font-size: 12px;
-  transition: transform 180ms ease;
-}
+.how summary::before { content: "❯"; color: var(--accent); font-size: 12px; transition: transform 180ms ease; }
 .how[open] summary::before { transform: rotate(90deg); }
 .how ol { color: var(--ink-2); line-height: 1.65; padding-left: 22px; margin: 0 0 14px; }
 .how ol li { margin: 6px 0; }
@@ -416,17 +419,24 @@ main#stage {
   font-family: var(--font-display);
   font-size: 20px;
   line-height: 1.25;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: var(--ink);
   letter-spacing: -0.2px;
   word-break: break-word;
 }
-
-.toc {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.book-stats {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
 }
+.sidebar-actions {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+}
+
+.toc { display: flex; flex-direction: column; gap: 4px; }
 .toc button {
   text-align: left;
   padding: 10px 12px;
@@ -438,9 +448,10 @@ main#stage {
   font: inherit;
   font-size: 14px;
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-  display: flex;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
   gap: 8px;
+  align-items: baseline;
 }
 .toc button:hover { background: var(--surface-2); color: var(--ink); }
 .toc button.active {
@@ -456,17 +467,21 @@ main#stage {
   font-weight: 700;
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-  width: 24px;
 }
 .toc button.done .num { color: var(--accent); }
 .toc button.done .num::after { content: " ✓"; }
-.toc button .txt {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.toc button .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toc button .rtime {
+  font-size: 10px;
+  color: var(--ink-3);
+  font-weight: 500;
   white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
 }
+.toc button.active .rtime { border-color: var(--accent); color: var(--accent); }
 
 .reader-main {
   flex: 1;
@@ -483,18 +498,69 @@ main#stage {
   scroll-behavior: smooth;
 }
 
-/* Message bubbles */
+/* ---------- Chapter opening plate ---------- */
+.chapter-plate {
+  max-width: 780px;
+  margin: 32px auto 24px;
+  text-align: center;
+  padding: 12px 24px;
+  position: relative;
+  animation: rise 300ms cubic-bezier(.2,.7,.3,1) both;
+}
+.chapter-plate .plate-ornament {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.chapter-plate .plate-ornament::before,
+.chapter-plate .plate-ornament::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  max-width: 90px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.chapter-plate .plate-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+}
+.chapter-plate h2 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3.6vw, 34px);
+  color: var(--ink);
+  margin: 8px 0 8px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+}
+.chapter-plate .plate-meta {
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+.chapter-plate .plate-meta strong {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ---------- Message bubbles ---------- */
 .msg {
   max-width: 780px;
   margin: 0 auto 22px;
-  padding: 22px 28px;
+  padding: 26px 32px 22px;
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
   font-family: var(--font-serif);
   font-size: 17px;
-  line-height: 1.68;
+  line-height: 1.72;
   color: var(--ink);
   position: relative;
   animation: rise 260ms cubic-bezier(.2,.7,.3,1) both;
@@ -533,37 +599,71 @@ main#stage {
 }
 
 .msg .role {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-family: var(--font-sans);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-3);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-weight: 700;
 }
 .msg.user .role { color: var(--user); }
 
+.msg .copy-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  text-transform: uppercase;
+  opacity: 0;
+}
+.msg:hover .copy-btn { opacity: 1; }
+.msg .copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+.msg .copy-btn.copied { color: var(--accent); border-color: var(--accent); opacity: 1; }
+
 .msg h2, .msg h3, .msg h4 {
   font-family: var(--font-display);
   color: var(--ink);
-  margin: 22px 0 8px;
+  margin: 26px 0 10px;
   line-height: 1.25;
   letter-spacing: -0.2px;
 }
-.msg h2 {
-  font-size: 24px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--line);
-}
+.msg h2 { font-size: 24px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .msg h3 { font-size: 19px; color: var(--accent-3); }
 @media (prefers-color-scheme: dark) { .msg h3 { color: var(--accent-2); } }
-.msg h4 { font-size: 16px; }
+.msg h4 { font-size: 16px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
 
 .msg p { margin: 10px 0; }
-.msg ul, .msg ol { margin: 10px 0 14px; padding-left: 24px; }
-.msg li { margin: 4px 0; }
-.msg li::marker { color: var(--accent); }
+
+/* Drop cap on the first paragraph of an assistant summary — but only when
+   the summary opens with prose (not a heading or list). */
+.msg.assistant > .content > p:first-child::first-letter {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 3.6em;
+  line-height: 0.9;
+  padding: 6px 10px 0 0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.msg ul, .msg ol { margin: 12px 0 16px; padding-left: 26px; }
+.msg li { margin: 5px 0; padding-left: 4px; }
+.msg li::marker { color: var(--accent); font-weight: 700; }
 .msg strong { color: var(--ink); font-weight: 700; }
 .msg em { color: var(--ink-2); font-style: italic; }
 .msg code {
@@ -587,25 +687,56 @@ main#stage {
   border: 1px solid var(--line);
 }
 .msg pre code { background: none; border: none; padding: 0; color: inherit; }
+
+/* Blockquotes styled as marginalia callouts */
 .msg blockquote {
   border-left: 3px solid var(--accent);
-  padding: 4px 14px;
+  padding: 12px 18px;
   color: var(--ink-2);
-  margin: 14px 0;
+  margin: 18px 0;
   font-style: italic;
-  background: var(--surface-2);
-  border-radius: 0 8px 8px 0;
+  background: var(--marginalia);
+  border-radius: 0 10px 10px 0;
+  position: relative;
+  font-size: 0.96em;
+}
+.msg blockquote::before {
+  content: "“";
+  position: absolute;
+  left: 8px;
+  top: -8px;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 42px;
+  line-height: 1;
+  opacity: 0.35;
+}
+.msg blockquote p:first-child { margin-top: 0; padding-left: 18px; }
+.msg blockquote p:last-child { margin-bottom: 0; }
+
+/* Definition-list style key terms — when the assistant writes
+   "**Term** — definition" bullets, they still look elegant. */
+.msg li strong:first-child + em,
+.msg li strong:first-child { color: var(--accent-3); }
+@media (prefers-color-scheme: dark) {
+  .msg li strong:first-child { color: var(--accent-2); }
 }
 
-/* Diagrams render as their own "printed page" so assistant-generated
-   HTML (usually authored against a light theme) stays legible in both
-   light and dark modes. */
+/* Divider inside a message (used between sections of a follow-up) */
+.msg hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+  margin: 20px 0;
+}
+
+/* Diagram card — always light-themed for contrast */
 .msg .diagram {
   background: #fdfbf4;
   border: 1px solid #d9cea8;
   border-radius: 12px;
   padding: 20px;
-  margin: 16px 0;
+  margin: 18px 0;
   overflow-x: auto;
   font-family: var(--font-sans);
   font-size: 14px;
@@ -630,30 +761,17 @@ main#stage {
 }
 .msg .diagram * { color: inherit; }
 .msg .diagram svg { max-width: 100%; height: auto; display: block; }
-.msg .diagram table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-.msg .diagram table th,
-.msg .diagram table td {
+.msg .diagram table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.msg .diagram table th, .msg .diagram table td {
   padding: 10px 14px;
   text-align: left;
   border: 1px solid #d9cea8;
   color: #241d10;
 }
-.msg .diagram table th {
-  background: #f2ead0;
-  color: #241d10;
-  font-weight: 700;
-}
+.msg .diagram table th { background: #f2ead0; color: #241d10; font-weight: 700; }
 .msg .diagram table tr:nth-child(even) td { background: #f7f0dd; }
 .msg .diagram a { color: #b95e1a; }
-.msg .diagram code {
-  background: #f2ead0;
-  color: #8b3f0d;
-  border-color: #d9cea8;
-}
+.msg .diagram code { background: #f2ead0; color: #8b3f0d; border-color: #d9cea8; }
 
 .msg .cursor {
   display: inline-block;
@@ -703,7 +821,6 @@ main#stage {
   outline: none;
 }
 .composer textarea::placeholder { color: var(--ink-3); }
-
 .composer-actions {
   display: flex;
   gap: 8px;
@@ -712,10 +829,7 @@ main#stage {
   padding: 4px 8px 6px;
   flex-wrap: wrap;
 }
-.composer-hint {
-  font-size: 12px;
-  color: var(--ink-3);
-}
+.composer-hint { font-size: 12px; color: var(--ink-3); }
 .composer-hint kbd {
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -728,22 +842,39 @@ main#stage {
 }
 .composer-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* ---------- Print stylesheet ---------- */
+@media print {
+  body { background: white !important; color: black !important; }
+  .topbar, .composer, .sidebar, .msg.user, .chapter-plate .plate-meta, .copy-btn { display: none !important; }
+  main#stage, #reader, .reader-main, .thread { display: block !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
+  .msg {
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    color: black !important;
+    max-width: 100% !important;
+    page-break-inside: avoid;
+    padding: 0 0 24px !important;
+  }
+  .msg::before { display: none !important; }
+  .chapter-plate { page-break-before: always; margin-top: 40px; }
+  .msg .diagram { break-inside: avoid; }
+}
+
 /* ---------- Small screens ---------- */
 @media (max-width: 800px) {
-  .topbar { padding: 12px 16px; }
+  .topbar { padding: 12px 16px; flex-wrap: wrap; }
   .brand h1 { font-size: 20px; }
   .brand p { display: none; }
+  .progress-inline .progress-track { width: 100px; }
   .hero h2 { font-size: 30px; }
   .hero p { font-size: 15px; }
   #reader { flex-direction: column; }
-  .sidebar {
-    width: 100%;
-    max-height: 220px;
-    border-right: none;
-    border-bottom: 1px solid var(--line);
-  }
+  .sidebar { width: 100%; max-height: 220px; border-right: none; border-bottom: 1px solid var(--line); }
   .thread { padding: 20px 14px; }
   .composer { padding: 12px 14px 16px; }
-  .msg { padding: 18px 20px; font-size: 16px; max-width: 100%; }
+  .msg { padding: 20px 22px; font-size: 16px; max-width: 100%; }
   .msg.user { max-width: 100%; }
+  .msg.assistant > .content > p:first-child::first-letter { font-size: 3em; }
+  .chapter-plate h2 { font-size: 24px; }
 }

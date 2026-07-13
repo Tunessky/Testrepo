@@ -1,0 +1,165 @@
+A Short Primer on Systems Thinking
+==================================
+
+
+Chapter One
+The Whole Is Not the Sum of Its Parts
+
+Most of us are taught to solve problems by breaking them into pieces. If a
+car won't start, we look at the battery, then the starter, then the fuel
+line — one component at a time. This approach, called reductionism, works
+brilliantly for many mechanical failures. It fails, however, for a large
+class of everyday problems: traffic that gets worse the more roads we
+build, forests that die when we suppress every wildfire, teams that grow
+less productive as we hire more people.
+
+Systems thinking is the discipline of seeing wholes. Instead of asking "what
+is broken?" it asks "what pattern of relationships produced this outcome?"
+
+A system, in this tradition, is a set of parts that interact to produce a
+behavior that no single part could produce alone. A watch is a system. A
+family is a system. A rainforest is a system. What makes them systems is
+not the parts but the pattern of connections among them — the wiring, the
+feedback, the delays. Rearrange the same parts differently and you get a
+different system. Rearrange the same people into a different team and you
+get a different team.
+
+Three ideas are foundational.
+
+First, structure produces behavior. When a system behaves badly, our
+instinct is to blame the people inside it. Systems thinkers resist this.
+They ask, "What structure would cause well-intentioned people to produce
+this outcome?" A hospital where nurses miss handoffs is usually not a
+hospital full of careless nurses — it is a hospital whose scheduling
+structure guarantees handoffs at the worst possible moments.
+
+Second, cause and effect are often distant in time and space. A slump in
+sales this quarter may be the delayed consequence of a product decision two
+years ago. A river that floods a village this spring may be the delayed
+consequence of a decision to drain wetlands upstream a decade earlier. Our
+minds are built for tight, immediate feedback loops; systems routinely
+present us with loose, delayed ones.
+
+Third, the easiest interventions are usually not the effective ones. Push
+harder on the visible symptom and the system often pushes back harder in
+return. Effective change usually requires finding the right leverage
+point — a place where a small, well-placed shift changes many downstream
+behaviors at once.
+
+The rest of this primer builds these three ideas up in practical detail.
+Chapter Two introduces the vocabulary of stocks, flows, and feedback loops,
+which is how systems thinkers actually draw pictures of the systems they
+study. Chapter Three shows how to spot the twelve most common leverage
+points, ranked from least to most powerful, so that when you look at a
+troubled system you know where a nudge is likely to matter.
+
+
+Chapter Two
+Stocks, Flows, and Feedback
+
+To think in systems clearly, you need a small drawing vocabulary. It has
+three symbols, and once you have them, a surprising number of everyday
+messes suddenly make sense.
+
+A stock is anything that can be measured at a single moment in time — how
+much water is in the bathtub right now, how many customers you have right
+now, how much trust exists in a marriage right now. Stocks are the memory
+of a system. They are what accumulates.
+
+A flow is the rate at which a stock changes — how fast water is entering
+or leaving the tub, how many new customers arrive each week and how many
+churn, how much trust is being built or spent in a given month. Flows are
+verbs; stocks are nouns.
+
+A feedback loop is a chain of cause and effect that eventually comes back
+around and influences its own starting point. Feedback loops come in two
+varieties.
+
+A reinforcing loop amplifies. Money in a savings account earns interest;
+the interest is added to the account; a larger account earns even more
+interest. Success, once started, tends to feed more success. Reinforcing
+loops are the engine of growth — and, when they run the wrong way, of
+collapse. A company losing customers gets a worse reputation, which makes
+it lose more customers.
+
+A balancing loop stabilizes. Your thermostat notices the room is too cold
+and turns on the heater; the room warms; the thermostat notices and turns
+the heater off. The loop pushes the stock back toward a goal. Balancing
+loops are the reason many systems seem "sticky" — they resist your
+interventions because they are trying to hold something constant.
+
+Almost every interesting behavior in a system comes from the interaction of
+these two loop types, usually delayed. Consider a simple business example.
+A startup releases a product; word of mouth (reinforcing loop) drives
+adoption; growth stresses the support team; support quality drops; unhappy
+customers leave (balancing loop pulling the stock back down). The overall
+trajectory — the S-curve, the boom-and-bust, the wobble around an
+equilibrium — is not the property of any one loop. It is the property of
+how the loops interact and how delayed the responses are.
+
+Two practical habits follow from this.
+
+The first is: draw the picture. When you can't understand why a team or a
+market or a household is behaving strangely, take a piece of paper and
+sketch the stocks, the flows, and the loops. You will almost always
+discover a loop you had not been consciously accounting for.
+
+The second is: look for delays. Systems with long delays between action and
+consequence are the ones that surprise us most. A public policy takes
+years to bite. A dietary change takes months to show up on the scale. When
+a system misbehaves, ask "how long is the loop?" — the longer the loop,
+the more the system's current state reflects choices made far in the past.
+
+
+Chapter Three
+Leverage Points
+
+Where do you push on a system to change it? Donella Meadows, one of the
+founding figures of the field, published a famous ordered list of twelve
+leverage points, from weakest to strongest. What follows is a condensed
+tour.
+
+The weaker interventions are the ones we reach for first because they feel
+tangible. You can adjust numbers — a tax rate, a headcount, a budget line
+item. You can adjust the sizes of stocks and buffers — how much inventory
+you carry, how large your emergency fund is. These changes matter, but
+they rarely alter what the system fundamentally does; they just tune it.
+
+Slightly more powerful are structural changes: rerouting flows,
+reorganizing who reports to whom, changing the physical layout of a
+factory. These change which parts interact with which, and often shift
+behavior — but the underlying rules of the game remain the same.
+
+More powerful still are changes to the delays and the feedback loops
+themselves. Shortening the delay between a mistake and the signal that it
+was a mistake usually improves a system dramatically. Adding a new
+balancing loop can stabilize a runaway problem; strengthening or weakening
+a reinforcing loop can change a growth curve into a collapse or vice
+versa.
+
+Above these sit the truly high-leverage interventions: changing the rules
+that govern the system, changing who gets to change the rules, and — at
+the very top — changing the goal that the system is trying to achieve and
+the mindset out of which the goal arises.
+
+A concrete illustration helps. Consider chronic urban traffic. Building
+more roads (adjusting a stock) is the classic weak intervention;
+historically it makes traffic worse over time because the extra capacity
+attracts more drivers. Adjusting congestion pricing (changing a rule)
+usually works better. Redesigning zoning so that people live closer to
+where they work (changing the goal of the transportation system from
+"move cars quickly" to "enable people to reach destinations easily") is
+the highest-leverage move, and, unsurprisingly, the hardest politically.
+
+The lesson is not that mindsets are always the right lever. Sometimes a
+budget line item is exactly what a struggling program needs. The lesson is
+that the leverage available to you is much wider than your first instinct
+suggests. When you find yourself pushing hard on a number and getting
+nowhere, climb the list.
+
+The three chapters of this primer, taken together, give you a rough field
+kit. Chapter One insisted that systems produce their own behavior. Chapter
+Two gave you a vocabulary to describe how. Chapter Three tells you where
+to press when you want that behavior to change. The rest is practice —
+draw more pictures, find more loops, and, when in doubt, ask what the
+system is really trying to do.

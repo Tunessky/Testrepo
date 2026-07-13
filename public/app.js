@@ -16,6 +16,7 @@ const els = {
   dropzone: $("#dropzone"),
   fileInput: $("#fileInput"),
   bookTitle: $("#bookTitle"),
+  bookStats: $("#bookStats"),
   toc: $("#toc"),
   thread: $("#thread"),
   composer: $("#composer"),
@@ -24,6 +25,11 @@ const els = {
   expandBtn: $("#expandBtn"),
   nextBtn: $("#nextBtn"),
   newBookBtn: $("#newBookBtn"),
+  printBtn: $("#printBtn"),
+  sampleBtn: $("#sampleBtn"),
+  progressInline: $("#progressInline"),
+  progressText: $("#progressText"),
+  progressFill: $("#progressFill"),
 };
 
 // ------------------------- Status ------------------------
@@ -63,7 +69,20 @@ async function uploadFile(file) {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || "Upload failed.");
     onBookLoaded(data);
-    setStatus(`Ready · ${data.chapters.length} chapters`, "");
+  } catch (err) {
+    setStatus(err.message, "error");
+    alert(err.message);
+  }
+}
+
+async function loadSample() {
+  setStatus("Loading sample…", "working");
+  try {
+    const fileResp = await fetch("/sample-book.txt");
+    if (!fileResp.ok) throw new Error("Sample not available.");
+    const blob = await fileResp.blob();
+    const file = new File([blob], "systems-thinking-primer.txt", { type: "text/plain" });
+    await uploadFile(file);
   } catch (err) {
     setStatus(err.message, "error");
     alert(err.message);
@@ -76,12 +95,27 @@ function onBookLoaded({ bookId, title, chapters }) {
   state.chapters = chapters.map((c) => ({ ...c, done: false, summary: "" }));
   state.currentIndex = -1;
   els.bookTitle.textContent = title;
+  els.bookStats.textContent = bookStatsLabel();
   renderToc();
+  updateProgress();
+  els.progressInline.classList.remove("hidden");
   els.landing.classList.add("hidden");
   els.reader.classList.remove("hidden");
   els.thread.innerHTML = "";
   addAssistantIntro();
   startChapter(0);
+}
+
+function bookStatsLabel() {
+  const totalWords = state.chapters.reduce((n, c) => n + (c.words || 0), 0);
+  const mins = Math.max(1, Math.round(totalWords / 250));
+  return `${state.chapters.length} chapters · ${totalWords.toLocaleString()} words · ~${mins} min brew`;
+}
+
+// ------------------------- Reading time ------------------
+function readingTime(words) {
+  const mins = Math.max(1, Math.round(words / 250));
+  return `${mins} min`;
 }
 
 // ------------------------- TOC ---------------------------
@@ -92,7 +126,8 @@ function renderToc() {
     btn.dataset.index = c.index;
     btn.innerHTML =
       `<span class="num">${String(c.index + 1).padStart(2, "0")}</span>` +
-      `<span class="txt">${escapeHtml(c.title)}</span>`;
+      `<span class="txt">${escapeHtml(c.title)}</span>` +
+      `<span class="rtime">${readingTime(c.words || 0)}</span>`;
     btn.addEventListener("click", () => startChapter(c.index));
     els.toc.appendChild(btn);
   });
@@ -107,16 +142,26 @@ function updateTocSelection() {
   });
 }
 
+function updateProgress() {
+  const total = state.chapters.length;
+  const done = state.chapters.filter((c) => c.done).length;
+  const pct = total ? (done / total) * 100 : 0;
+  els.progressFill.style.width = `${pct}%`;
+  els.progressText.textContent = `${done} / ${total} brewed`;
+}
+
 // ------------------------- Chat plumbing -----------------
 function addAssistantIntro() {
   const div = document.createElement("div");
   div.className = "msg";
   div.innerHTML = `
-    <span class="role">Book Brewery</span>
-    <p>Welcome — <strong>${escapeHtml(state.title)}</strong> is on the stove. I split it into
-    <strong>${state.chapters.length}</strong> chapters. I'll brew each one into a structured
-    learning summary, then pause and ask if you'd like to expand a section or move on.</p>
-    <p>Starting with Chapter 1 now…</p>
+    <div class="role"><span>Book Brewery</span></div>
+    <div class="content">
+      <p>Welcome — <strong>${escapeHtml(state.title)}</strong> is on the stove. I split it into
+      <strong>${state.chapters.length}</strong> chapters. I'll brew each one into a structured
+      learning summary, then pause and ask if you'd like to expand a section or move on.</p>
+      <p>Starting with Chapter 1 now…</p>
+    </div>
   `;
   els.thread.appendChild(div);
   scrollThread();
@@ -125,7 +170,7 @@ function addAssistantIntro() {
 function addUserMessage(text) {
   const div = document.createElement("div");
   div.className = "msg user";
-  div.innerHTML = `<span class="role">You</span>${renderMarkdown(text)}`;
+  div.innerHTML = `<div class="role"><span>You</span></div>${renderMarkdown(text)}`;
   els.thread.appendChild(div);
   scrollThread();
 }
@@ -133,18 +178,55 @@ function addUserMessage(text) {
 function addAssistantMessage() {
   const div = document.createElement("div");
   div.className = "msg assistant";
-  div.innerHTML = `<span class="role">Book Brewery</span><div class="content"></div>`;
+  div.innerHTML = `
+    <div class="role">
+      <span>Book Brewery</span>
+      <button type="button" class="copy-btn" title="Copy summary">Copy</button>
+    </div>
+    <div class="content"></div>
+  `;
+  els.thread.appendChild(div);
+  // Copy button — copies the raw text of this message when clicked.
+  const btn = div.querySelector(".copy-btn");
+  btn.addEventListener("click", () => copyMessage(div, btn));
+  scrollThread();
+  return { mount: div.querySelector(".content"), root: div };
+}
+
+async function copyMessage(root, btn) {
+  const raw = root.dataset.raw || root.querySelector(".content")?.innerText || "";
+  try {
+    await navigator.clipboard.writeText(raw);
+    btn.classList.add("copied");
+    btn.textContent = "Copied";
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      btn.textContent = "Copy";
+    }, 1500);
+  } catch (_) {
+    btn.textContent = "Failed";
+    setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+  }
+}
+
+function addChapterPlate(index) {
+  const chapter = state.chapters[index];
+  if (!chapter) return;
+  const div = document.createElement("div");
+  div.className = "chapter-plate";
+  div.innerHTML = `
+    <div class="plate-ornament"><span class="plate-eyebrow">Chapter ${index + 1} of ${state.chapters.length}</span></div>
+    <h2>${escapeHtml(chapter.title)}</h2>
+    <div class="plate-meta"><strong>${(chapter.words || 0).toLocaleString()}</strong> words · <strong>${readingTime(chapter.words || 0)}</strong> read</div>
+  `;
   els.thread.appendChild(div);
   scrollThread();
-  return div.querySelector(".content");
 }
 
-function scrollThread() {
-  els.thread.scrollTop = els.thread.scrollHeight;
-}
+function scrollThread() { els.thread.scrollTop = els.thread.scrollHeight; }
 
 // ------------------------- Streaming ---------------------
-async function streamInto(mount, url, body) {
+async function streamInto(mount, root, url, body) {
   state.streaming = true;
   setSendingUi(true);
   let raw = "";
@@ -186,7 +268,8 @@ async function streamInto(mount, url, body) {
     }
 
     mount.innerHTML = renderMarkdown(raw);
-    setStatus("Ready", "");
+    if (root) root.dataset.raw = raw;
+    setStatus(`Ready · ${state.chapters.filter((c) => c.done).length + 1} / ${state.chapters.length}`);
     return raw;
   } catch (err) {
     mount.innerHTML =
@@ -231,21 +314,15 @@ async function startChapter(index) {
   if (!chapter) return;
   state.currentIndex = index;
   updateTocSelection();
+  addChapterPlate(index);
 
-  const header = document.createElement("div");
-  header.className = "msg user";
-  header.innerHTML =
-    `<span class="role">You</span>Brew Chapter ${index + 1}: <strong>${escapeHtml(chapter.title)}</strong>.`;
-  els.thread.appendChild(header);
-  scrollThread();
-
-  const mount = addAssistantMessage();
+  const { mount, root } = addAssistantMessage();
   const priorChapters = state.chapters
     .slice(0, index)
     .filter((c) => c.done)
     .map((c) => ({ title: c.title, gist: firstSentence(c.summary) }));
 
-  const summary = await streamInto(mount, "/api/summarize", {
+  const summary = await streamInto(mount, root, "/api/summarize", {
     bookId: state.bookId,
     chapterIndex: index,
     priorChapters,
@@ -254,6 +331,7 @@ async function startChapter(index) {
   chapter.summary = summary;
   chapter.done = true;
   updateTocSelection();
+  updateProgress();
 }
 
 async function askFollowUp(question) {
@@ -261,8 +339,8 @@ async function askFollowUp(question) {
   if (state.currentIndex < 0) return;
   const chapter = state.chapters[state.currentIndex];
   addUserMessage(question);
-  const mount = addAssistantMessage();
-  const summary = await streamInto(mount, "/api/followup", {
+  const { mount, root } = addAssistantMessage();
+  const summary = await streamInto(mount, root, "/api/followup", {
     bookId: state.bookId,
     chapterIndex: state.currentIndex,
     previousSummary: chapter.summary,
@@ -294,8 +372,8 @@ els.expandBtn.addEventListener("click", () => {
 els.nextBtn.addEventListener("click", () => {
   const next = state.currentIndex + 1;
   if (next >= state.chapters.length) {
-    addAssistantMessage().innerHTML =
-      "<p>That was the last chapter. 🎉 Upload another book from the left when you're ready.</p>";
+    const { mount } = addAssistantMessage();
+    mount.innerHTML = "<p>That was the last chapter. 🎉 Upload another book from the left when you're ready.</p>";
     return;
   }
   startChapter(next);
@@ -305,6 +383,7 @@ els.newBookBtn.addEventListener("click", () => {
   if (state.streaming && !confirm("A summary is streaming. Discard and upload a new book?")) return;
   els.reader.classList.add("hidden");
   els.landing.classList.remove("hidden");
+  els.progressInline.classList.add("hidden");
   setStatus("Idle");
   state.bookId = null;
   state.title = null;
@@ -312,6 +391,10 @@ els.newBookBtn.addEventListener("click", () => {
   state.currentIndex = -1;
   els.fileInput.value = "";
 });
+
+els.printBtn.addEventListener("click", () => window.print());
+
+els.sampleBtn.addEventListener("click", loadSample);
 
 // ------------------------- Utilities ---------------------
 function firstSentence(md) {
@@ -334,27 +417,21 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-// Sentinel for extracted fences; wraps a numeric id and cannot appear in
-// user/assistant text because \x1E is a control character.
-const FENCE_L = "F";
-const FENCE_R = "/F";
+// Sentinel for extracted fences.
+const FENCE_L = "FENCE";
+const FENCE_R = "FENCE";
 
 function renderMarkdown(src) {
   if (!src) return "";
   let text = src.replace(/\r\n/g, "\n");
 
-  // Extract paired code fences first so their bodies aren't touched by other
-  // rules. Accept a space *or* newline after the language tag, so
-  // ```html <div…> is still recognized as a diagram (not code).
   const fences = [];
   text = text.replace(/```([a-zA-Z0-9_-]*)[ \t]*\n?([\s\S]*?)```/g, (_m, lang, body) => {
-    fences.push({ lang: (lang || "").toLowerCase(), body, closed: true });
+    fences.push({ lang: (lang || "").toLowerCase(), body });
     return `${FENCE_L}${fences.length - 1}${FENCE_R}`;
   });
-  // Unterminated fence at the tail — render the partial body live during
-  // streaming instead of leaving raw markdown visible.
   text = text.replace(/```([a-zA-Z0-9_-]*)[ \t]*\n?([\s\S]*)$/, (_m, lang, body) => {
-    fences.push({ lang: (lang || "").toLowerCase(), body, closed: false });
+    fences.push({ lang: (lang || "").toLowerCase(), body });
     return `${FENCE_L}${fences.length - 1}${FENCE_R}`;
   });
 
@@ -375,7 +452,7 @@ function renderMarkdown(src) {
       .filter(Boolean)
       .map((l) => l.replace(/^&gt;\s?/, ""))
       .join(" ");
-    return `<blockquote>${inner}</blockquote>\n`;
+    return `<blockquote><p>${inner}</p></blockquote>\n`;
   });
 
   text = text.replace(/(?:^|\n)((?:[-*]\s+.+(?:\n(?:  +.+))*(?:\n|$))+)/g, (m, block) => {
@@ -409,8 +486,7 @@ function renderMarkdown(src) {
     })
     .join("\n");
 
-  // Restore fences.
-  const fenceRe = new RegExp(`${FENCE_L}(\\d+)${FENCE_R}`, "g");
+  const fenceRe = new RegExp(`${FENCE_L.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&")}(\\d+)${FENCE_R.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&")}`, "g");
   text = text.replace(fenceRe, (_m, i) => {
     const { lang, body } = fences[Number(i)];
     if (lang === "html" || lang === "svg" || lang === "") {

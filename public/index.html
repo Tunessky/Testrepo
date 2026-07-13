@@ -16,7 +16,13 @@
           <p>Steep any ebook into a chapter-by-chapter learning summary.</p>
         </div>
       </div>
-      <div class="status" id="status">Idle</div>
+      <div class="topbar-right">
+        <div class="progress-inline hidden" id="progressInline" aria-hidden="true">
+          <span class="progress-label"><span id="progressText">0 / 0</span></span>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <div class="status" id="status">Idle</div>
+      </div>
     </header>
 
     <main id="stage">
@@ -48,6 +54,15 @@
           </div>
         </div>
 
+        <button type="button" class="sample-cta" id="sampleBtn">
+          <span class="sample-icon">☕</span>
+          <span class="sample-body">
+            <strong>No book handy?</strong>
+            <span>Brew a short primer on Systems Thinking to see how it works.</span>
+          </span>
+          <span class="sample-arrow">→</span>
+        </button>
+
         <details class="how">
           <summary>How Book Brewery brews</summary>
           <ol>
@@ -63,7 +78,11 @@
         <aside class="sidebar">
           <div class="book-meta">
             <div class="book-title" id="bookTitle">—</div>
-            <button class="linkbtn" id="newBookBtn">← Upload a different book</button>
+            <div class="book-stats" id="bookStats">—</div>
+            <div class="sidebar-actions">
+              <button class="linkbtn" id="newBookBtn">← New book</button>
+              <button class="linkbtn" id="printBtn" title="Print or save all brewed summaries">Print / save</button>
+            </div>
           </div>
           <nav class="toc" id="toc" aria-label="Chapters"></nav>
         </aside>
