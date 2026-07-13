@@ -24,6 +24,32 @@ npm start
 # → http://localhost:3000
 ```
 
+## Deploy it
+
+The repo ships with configs for the three easiest hosts. Each one needs the same secret: `ANTHROPIC_API_KEY`.
+
+### Render (recommended — free tier, no CLI)
+
+1. Push this repo to GitHub (already done for `Tunessky/Testrepo`).
+2. Go to https://dashboard.render.com/select-repo?type=blueprint and pick this repo.
+3. Render reads `render.yaml`, provisions a `book-brewery` web service.
+4. In the service's **Environment** tab, set `ANTHROPIC_API_KEY` to your real key.
+5. Deploy. You get a public `*.onrender.com` URL in ~2 minutes.
+
+### Fly.io
+
+```bash
+brew install flyctl        # or: curl -L https://fly.io/install.sh | sh
+fly auth login
+fly launch --copy-config --no-deploy   # accepts fly.toml, picks a unique app name
+fly secrets set ANTHROPIC_API_KEY=sk-ant-...
+fly deploy
+```
+
+### Railway / Heroku / anything with a Procfile
+
+Just point it at the repo — `Procfile` sets the start command, `package.json` engines pin Node 20, `ANTHROPIC_API_KEY` is the only env var required.
+
 Optional environment variables:
 
 | Variable            | Default            | Purpose                                   |
