@@ -81,7 +81,6 @@ function onBookLoaded({ bookId, title, chapters }) {
   els.reader.classList.remove("hidden");
   els.thread.innerHTML = "";
   addAssistantIntro();
-  // Auto-start the first chapter.
   startChapter(0);
 }
 
@@ -91,9 +90,9 @@ function renderToc() {
   state.chapters.forEach((c) => {
     const btn = document.createElement("button");
     btn.dataset.index = c.index;
-    btn.innerHTML = `<span class="num">${String(c.index + 1).padStart(2, "0")}</span><span class="txt">${escapeHtml(
-      c.title,
-    )}</span>`;
+    btn.innerHTML =
+      `<span class="num">${String(c.index + 1).padStart(2, "0")}</span>` +
+      `<span class="txt">${escapeHtml(c.title)}</span>`;
     btn.addEventListener("click", () => startChapter(c.index));
     els.toc.appendChild(btn);
   });
@@ -171,7 +170,6 @@ async function streamInto(mount, url, body) {
       const { value, done } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      // Parse SSE lines
       let idx;
       while ((idx = buffer.indexOf("\n\n")) !== -1) {
         const chunk = buffer.slice(0, idx);
@@ -183,8 +181,6 @@ async function streamInto(mount, url, body) {
           scrollThread();
         } else if (event === "error") {
           throw new Error(data?.message || "Stream error");
-        } else if (event === "done") {
-          // no-op, loop will end
         }
       }
     }
@@ -193,7 +189,8 @@ async function streamInto(mount, url, body) {
     setStatus("Ready", "");
     return raw;
   } catch (err) {
-    mount.innerHTML = renderMarkdown(raw) +
+    mount.innerHTML =
+      renderMarkdown(raw) +
       `\n\n<p style="color: var(--danger)"><strong>Error:</strong> ${escapeHtml(err.message)}</p>`;
     setStatus(err.message, "error");
     return raw;
@@ -237,9 +234,8 @@ async function startChapter(index) {
 
   const header = document.createElement("div");
   header.className = "msg user";
-  header.innerHTML = `<span class="role">You</span>Brew Chapter ${index + 1}: <strong>${escapeHtml(
-    chapter.title,
-  )}</strong>.`;
+  header.innerHTML =
+    `<span class="role">You</span>Brew Chapter ${index + 1}: <strong>${escapeHtml(chapter.title)}</strong>.`;
   els.thread.appendChild(header);
   scrollThread();
 
@@ -272,7 +268,6 @@ async function askFollowUp(question) {
     previousSummary: chapter.summary,
     question,
   });
-  // Overwrite the running summary so future follow-ups have latest context.
   chapter.summary = `${chapter.summary}\n\n---\n\n${summary}`;
 }
 
@@ -339,27 +334,32 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-/**
- * Small, deliberately-limited Markdown renderer.
- * Supports: headings, bold/italic, inline code, code fences (```html blocks are
- * rendered as diagrams), unordered/ordered lists, blockquotes, hr, paragraphs.
- * Nothing fancy — but self-contained (no external dependency).
- */
+// Sentinel for extracted fences; wraps a numeric id and cannot appear in
+// user/assistant text because \x1E is a control character.
+const FENCE_L = "F";
+const FENCE_R = "/F";
+
 function renderMarkdown(src) {
   if (!src) return "";
   let text = src.replace(/\r\n/g, "\n");
 
-  // Code fences (extract first so their contents aren't touched by other rules).
+  // Extract paired code fences first so their bodies aren't touched by other
+  // rules. Accept a space *or* newline after the language tag, so
+  // ```html <div…> is still recognized as a diagram (not code).
   const fences = [];
-  text = text.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_m, lang, body) => {
-    fences.push({ lang: (lang || "").toLowerCase(), body });
-    return ` FENCE${fences.length - 1} `;
+  text = text.replace(/```([a-zA-Z0-9_-]*)[ \t]*\n?([\s\S]*?)```/g, (_m, lang, body) => {
+    fences.push({ lang: (lang || "").toLowerCase(), body, closed: true });
+    return `${FENCE_L}${fences.length - 1}${FENCE_R}`;
+  });
+  // Unterminated fence at the tail — render the partial body live during
+  // streaming instead of leaving raw markdown visible.
+  text = text.replace(/```([a-zA-Z0-9_-]*)[ \t]*\n?([\s\S]*)$/, (_m, lang, body) => {
+    fences.push({ lang: (lang || "").toLowerCase(), body, closed: false });
+    return `${FENCE_L}${fences.length - 1}${FENCE_R}`;
   });
 
-  // Escape everything else.
   text = escapeHtml(text);
 
-  // Headings
   text = text.replace(/^######\s+(.+)$/gm, "<h6>$1</h6>");
   text = text.replace(/^#####\s+(.+)$/gm, "<h5>$1</h5>");
   text = text.replace(/^####\s+(.+)$/gm, "<h4>$1</h4>");
@@ -367,10 +367,8 @@ function renderMarkdown(src) {
   text = text.replace(/^##\s+(.+)$/gm, "<h2>$1</h2>");
   text = text.replace(/^#\s+(.+)$/gm, "<h2>$1</h2>");
 
-  // Horizontal rule
   text = text.replace(/^\s*---+\s*$/gm, "<hr />");
 
-  // Blockquotes
   text = text.replace(/^(?:&gt;\s?.*(?:\n|$))+/gm, (block) => {
     const inner = block
       .split("\n")
@@ -380,7 +378,6 @@ function renderMarkdown(src) {
     return `<blockquote>${inner}</blockquote>\n`;
   });
 
-  // Lists (ordered and unordered)
   text = text.replace(/(?:^|\n)((?:[-*]\s+.+(?:\n(?:  +.+))*(?:\n|$))+)/g, (m, block) => {
     const items = block
       .trim()
@@ -400,23 +397,23 @@ function renderMarkdown(src) {
     return `\n<ol>${items}</ol>\n`;
   });
 
-  // Paragraphs
+  const isBlockStart = /^<(h\d|ul|ol|blockquote|hr|pre|div)/;
   text = text
     .split(/\n{2,}/)
     .map((block) => {
       const trimmed = block.trim();
       if (!trimmed) return "";
-      if (/^<(h\d|ul|ol|blockquote|hr|pre|div)/.test(trimmed)) return trimmed;
-      if (trimmed.startsWith(" FENCE")) return trimmed;
+      if (isBlockStart.test(trimmed)) return trimmed;
+      if (trimmed.includes(FENCE_L)) return trimmed;
       return `<p>${inline(trimmed.replace(/\n/g, " "))}</p>`;
     })
     .join("\n");
 
   // Restore fences.
-  text = text.replace(/ FENCE(\d+) /g, (_m, i) => {
+  const fenceRe = new RegExp(`${FENCE_L}(\\d+)${FENCE_R}`, "g");
+  text = text.replace(fenceRe, (_m, i) => {
     const { lang, body } = fences[Number(i)];
-    if (lang === "html" || lang === "svg") {
-      // Trust the assistant's diagram HTML — sandboxed by our CSP-less local origin.
+    if (lang === "html" || lang === "svg" || lang === "") {
       return `<div class="diagram">${body}</div>`;
     }
     return `<pre><code>${escapeHtml(body)}</code></pre>`;
