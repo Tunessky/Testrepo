@@ -57,7 +57,14 @@ app.post("/logout", (req, res) => {
 
 // Gate everything below.
 app.use(requireAuth);
-app.use(express.static(path.join(__dirname, "public")));
+
+// Force the browser to revalidate static assets on every load so a fix
+// pushed to /app.js or /style.css never gets stuck behind a stale cache.
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
+  next();
+});
+app.use(express.static(path.join(__dirname, "public"), { etag: true, lastModified: true }));
 
 // In-memory session store: bookId -> { title, chapters: [{title, text}] }
 const books = new Map();
@@ -72,9 +79,12 @@ function getClient() {
   return new Anthropic({ apiKey: key });
 }
 
+const APP_VERSION = "2026.07.14";
+
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
+    version: APP_VERSION,
     model: process.env.ANTHROPIC_MODEL || "claude-opus-4-7",
     hasKey: Boolean(process.env.ANTHROPIC_API_KEY),
     authEnabled: isAuthEnabled(),

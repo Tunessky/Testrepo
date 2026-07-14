@@ -584,14 +584,18 @@ function inline(t) {
 }
 
 // ------------------------- Boot --------------------------
+const APP_VERSION = "2026.07.14";
+
 (async function boot() {
   try {
     const resp = await fetch("/api/health");
     const data = await resp.json();
     if (!data.hasKey) {
       setStatus("No API key configured", "error");
+    } else if (data.version && data.version !== APP_VERSION) {
+      setStatus(`Restart needed (client ${APP_VERSION}, server ${data.version})`, "error");
     } else {
-      setStatus(`Idle · ${data.model}`);
+      setStatus(`Ready · v${APP_VERSION} · ${data.model}`);
     }
     if (data.authEnabled) {
       const form = document.getElementById("logoutForm");
